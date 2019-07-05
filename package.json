@@ -1,0 +1,17 @@
+{
+  "name": "katame",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "repository": "https://github.com/KimotoYanke/katame",
+  "author": "KimotoYanke <kimotoyanke@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^1.16.6",
+    "rollup-plugin-commonjs": "^10.0.1",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.21.2"
+  }
+}
