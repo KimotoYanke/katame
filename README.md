@@ -1,0 +1,2 @@
+# Katame
+Typed MeCab
