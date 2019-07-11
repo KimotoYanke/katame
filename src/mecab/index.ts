@@ -1,4 +1,5 @@
 import { spawn, ChildProcess } from "child_process";
+import { toParsedResult } from "./types";
 class MeCab {
   cmd: string = "mecab";
   args: string[] = [];
@@ -16,21 +17,14 @@ class MeCab {
       throw new Error("This MeCab process is killed");
     }
 
-    const promise = new Promise<string>(resolve => {
+    const promise = new Promise<string[]>((resolve, reject) => {
       this.process.stdout.on("data", chunk => {
-        resolve(chunk.toString("utf8"));
+        const s = chunk.toString("utf8").trim();
+        resolve(s.split("\n"));
       });
     });
     this.process.stdin.write(str + "\n");
     return promise;
-  }
-
-  private resultParse(resultString: string) {
-    const result = resultString.split("\n").map(line => {
-      const [word, features] = line.split("\t");
-
-      return [word, ...features.split(",")];
-    });
   }
 
   close() {
@@ -43,8 +37,8 @@ class MeCab {
 const mecab = new MeCab();
 mecab.spawn();
 mecab
-  .parse("お高い")
-  .then(s => console.log(s))
+  .parse("来い")
+  .then(lines => lines.forEach(s => console.log(toParsedResult(s))))
   .finally(() => {
     mecab.close();
   });
