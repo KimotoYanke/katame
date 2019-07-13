@@ -19,7 +19,6 @@ export const generateConditionalType = <O extends { [key: string]: any }>(
       generateConditionalType(checkType, index + 1, pos, f)
     );
   } else if (posTypeName === "*") {
-    console.log(pd1);
     return t.tsConditionalType(
       checkType,
       t.tsAnyKeyword(),

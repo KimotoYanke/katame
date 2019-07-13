@@ -18,7 +18,7 @@ const con: {
       };
     };
   };
-} = yaml.parse(file).CON;
+} = yaml.parse(file).CForm;
 
 const posRef = toTSTypeReference("Pos");
 const pd1Ref = t.tsTypeReference(
