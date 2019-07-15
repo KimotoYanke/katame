@@ -34,11 +34,4 @@ class Mecab {
   }
 }
 
-const mecab = new Mecab();
-mecab.spawn();
-mecab
-  .parse("欲しけりゃ")
-  .then(lines => lines.forEach(s => console.log(toIPADicParsedResult(s))))
-  .finally(() => {
-    mecab.close();
-  });
+export default Mecab;

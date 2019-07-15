@@ -12,7 +12,10 @@ const plugins = [
   // Allow json resolution
   json(),
   // Compile TypeScript files
-  typescript({ useTsconfigDeclarationDir: true }),
+  typescript({
+    useTsconfigDeclarationDir: true,
+    tsconfigOverride: { compilerOptions: { module: "esnext" } }
+  }),
   // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
   commonjs(),
   // Allow node_modules resolution, so you can use 'external' to control
@@ -36,7 +39,10 @@ export default [
       },
       { file: pkg.module, format: "es", sourcemap: true }
     ],
-    external: Object.keys(pkg.dependencies),
+    external: [
+      ...Object.keys(pkg.dependencies),
+      ...Object.keys(pkg.optionalDependencies)
+    ],
     watch: {
       include: "src/**"
     },

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
   "repository": "https://github.com/KimotoYanke/katame",
   "author": "KimotoYanke <kimotoyanke@gmail.com>",
   "license": "MIT",
@@ -12,6 +13,7 @@
     "@babel/types": "^7.5.0",
     "@types/babel__generator": "^7.0.2",
     "@types/babel__template": "^7.0.2",
+    "@types/kuromoji": "^0.1.0",
     "@types/yaml": "^1.0.2",
     "prettier": "^1.18.2",
     "rollup": "^1.16.6",
@@ -24,13 +26,13 @@
     "yaml": "^1.6.0"
   },
   "scripts": {
-    "type": "ts-node ./type-generator/to-type.ts"
+    "type": "ts-node ./type-generator/to-type.ts",
+    "build": "npm run type && tsc --module commonjs && rollup -c rollup.config.ts"
   },
   "dependencies": {
     "jaco": "^4.0.0"
   },
-  "peerDependencies": {
-    "@types/kuromoji": "^0.1.0",
+  "optionalDependencies": {
     "kuromoji": "^0.1.2"
   }
 }

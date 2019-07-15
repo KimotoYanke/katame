@@ -60,3 +60,5 @@ typings/
 # next.js build output
 .next
 src/types/ipadic/generated.ts
+dist/
+.rpt2_cache/

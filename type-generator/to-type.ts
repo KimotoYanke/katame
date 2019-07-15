@@ -17,10 +17,7 @@ const generateFor = (name: string) => {
       return String.fromCharCode(parseInt(g1, 16));
     });
   };
-  const code = prettier.format(
-    stringHexToStr(generate(typeDefinitions, {}).code),
-    { parser: "typescript" }
-  );
+  const code = stringHexToStr(generate(typeDefinitions, {}).code);
 
   fs.writeFileSync(`./src/types/${name}/generated.ts`, code);
 };
