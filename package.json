@@ -24,6 +24,9 @@
     "yaml": "^1.6.0"
   },
   "scripts": {
-    "type": "ts-node ./definitions/to-type.ts"
+    "type": "ts-node ./type-generator/to-type.ts"
+  },
+  "dependencies": {
+    "jaco": "^4.0.0"
   }
 }

@@ -14,10 +14,12 @@ import {
   PosD2,
   PosD3,
   ConjugationForm,
-  ConjugationForm2
+  ConjugationForm2,
+  toConjugationType as toConjugationType_
 } from "./generated/type";
+import { toNarrowAlphanumeric } from "jaco";
 
-interface ParsedResult<
+interface MecabParsedResult<
   P extends Pos = Pos,
   PD1 extends PosD1<P> = PosD1<P>,
   PD2 extends PosD2<P, PD1> = PosD2<P, PD1>,
@@ -34,7 +36,10 @@ interface ParsedResult<
   pronunciation: string;
 }
 
-export const toParsedResult = (line: string): ParsedResult => {
+const toConjugationType = (pos: Pos, ctStr: string) =>
+  toConjugationType_(pos, toNarrowAlphanumeric(ctStr));
+
+export const toParsedResult = (line: string): MecabParsedResult => {
   const [surface, features] = line.split("\t");
   const [
     posStr,
@@ -42,7 +47,7 @@ export const toParsedResult = (line: string): ParsedResult => {
     pd2Str,
     pd3Str,
     cfSetStr,
-    conjugationType,
+    ctStr,
     basic,
     reading,
     pronunciation
@@ -52,13 +57,15 @@ export const toParsedResult = (line: string): ParsedResult => {
   const pd1 = toPosD1(pos, pd1Str);
   const pd2 = toPosD2(pos, pd1, pd2Str);
   const pd3 = toPosD3(pos, pd1, pd2, pd3Str);
+  const posDetail = toPosDetail(pos, pd1, pd2, pd3);
   const [cfStr, cf2Str] = cfSetStr.split("・", 2);
   const cf = toConjugationForm(pos, pd1, cfStr);
   const cf2 = toCF2(pos, pd1, cf, cf2Str);
   const conjugationForm = toCFSet(pos, pd1, cf, cf2);
+  const conjugationType = toConjugationType(pos, ctStr);
   return {
     surface,
-    posDetail: toPosDetail(pos, pd1, pd2, pd3),
+    posDetail,
     conjugationForm,
     conjugationType,
     basic,

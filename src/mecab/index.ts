@@ -37,7 +37,7 @@ class MeCab {
 const mecab = new MeCab();
 mecab.spawn();
 mecab
-  .parse("来い")
+  .parse("欲しけりゃ")
   .then(lines => lines.forEach(s => console.log(toParsedResult(s))))
   .finally(() => {
     mecab.close();
