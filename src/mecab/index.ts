@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from "child_process";
-import { toParsedResult } from "./types";
-class MeCab {
+import { toIPADicParsedResult } from "../types/ipadic";
+class Mecab {
   cmd: string = "mecab";
   args: string[] = [];
 
@@ -34,11 +34,11 @@ class MeCab {
   }
 }
 
-const mecab = new MeCab();
+const mecab = new Mecab();
 mecab.spawn();
 mecab
   .parse("欲しけりゃ")
-  .then(lines => lines.forEach(s => console.log(toParsedResult(s))))
+  .then(lines => lines.forEach(s => console.log(toIPADicParsedResult(s))))
   .finally(() => {
     mecab.close();
   });

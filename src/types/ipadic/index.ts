@@ -16,10 +16,10 @@ import {
   ConjugationForm,
   ConjugationForm2,
   toConjugationType as toConjugationType_
-} from "./generated/type";
+} from "./generated";
 import { toNarrowAlphanumeric } from "jaco";
 
-interface MecabParsedResult<
+interface IPADicParsedResult<
   P extends Pos = Pos,
   PD1 extends PosD1<P> = PosD1<P>,
   PD2 extends PosD2<P, PD1> = PosD2<P, PD1>,
@@ -39,7 +39,7 @@ interface MecabParsedResult<
 const toConjugationType = (pos: Pos, ctStr: string) =>
   toConjugationType_(pos, toNarrowAlphanumeric(ctStr));
 
-export const toParsedResult = (line: string): MecabParsedResult => {
+export const toIPADicParsedResult = (line: string): IPADicParsedResult => {
   const [surface, features] = line.split("\t");
   const [
     posStr,

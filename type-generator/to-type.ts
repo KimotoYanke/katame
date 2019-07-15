@@ -22,7 +22,7 @@ const generateFor = (name: string) => {
     { parser: "typescript" }
   );
 
-  fs.writeFileSync(`./src/${name}/types/generated/type.ts`, code);
+  fs.writeFileSync(`./src/types/${name}/generated.ts`, code);
 };
 
-generateFor("mecab");
+generateFor("ipadic");
