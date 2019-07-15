@@ -28,5 +28,9 @@
   },
   "dependencies": {
     "jaco": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@types/kuromoji": "^0.1.0",
+    "kuromoji": "^0.1.2"
   }
 }

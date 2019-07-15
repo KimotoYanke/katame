@@ -3,7 +3,7 @@ export const generateConditionalType = <O extends { [key: string]: any }>(
   checkType: t.TSType,
   index: number,
   pos: { [key: string]: O },
-  f: (o: O) => t.TSType
+  f: (o: O, name: string) => t.TSType
 ): t.TSConditionalType | t.TSNullKeyword | t.TSType => {
   const keys = Object.keys(pos);
   const posTypeName = keys[index];
@@ -11,28 +11,36 @@ export const generateConditionalType = <O extends { [key: string]: any }>(
     return t.tsNullKeyword();
   }
   const pd1 = pos[posTypeName];
-  if (pd1 === null) {
-    return t.tsConditionalType(
-      checkType,
-      toLiteralType(posTypeName),
-      t.tsNullKeyword(),
-      generateConditionalType(checkType, index + 1, pos, f)
-    );
-  } else if (posTypeName === "*") {
+  if (posTypeName === "*") {
     return t.tsConditionalType(
       checkType,
       t.tsAnyKeyword(),
-      f(pd1),
+      f(pd1, posTypeName),
       generateConditionalType(checkType, index + 1, pos, f)
     );
   }
   return t.tsConditionalType(
     checkType,
     toLiteralType(posTypeName),
-    f(pd1),
+    f(pd1, posTypeName),
     generateConditionalType(checkType, index + 1, pos, f)
   );
 };
+export const generateConditionalTypeWithNull = <
+  O extends { [key: string]: any }
+>(
+  checkType: t.TSType,
+  index: number,
+  pos: { [key: string]: O },
+  f: (o: O, name: string) => t.TSType,
+  nullObject: (o: O, name: string) => t.TSType = () => t.tsNullKeyword()
+): t.TSConditionalType | t.TSNullKeyword | t.TSType =>
+  generateConditionalType(checkType, index, pos, (o: O, name: string) => {
+    if (!o) {
+      return nullObject(o, name);
+    }
+    return f(o, name);
+  });
 
 export const toLiteralType = (n: string) => t.tsLiteralType(t.stringLiteral(n));
 

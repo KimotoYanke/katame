@@ -7,7 +7,8 @@ import {
   toLiteralType,
   toTSTypeReference,
   toODef,
-  toSwitchOrDefault
+  toSwitchOrDefault,
+  generateConditionalTypeWithNull
 } from "./util";
 
 export default (name: string) => {
@@ -50,8 +51,8 @@ export default (name: string) => {
   );
 
   const pd1Type = (checkType: t.TSType) => {
-    return generateConditionalType(checkType, 0, pos, pd1 =>
-      t.tsUnionType(Object.keys(pd1).map(toLiteralType))
+    return generateConditionalTypeWithNull(checkType, 0, pos, pd1 =>
+      t.tsUnionType(Object.keys(pd1 || {}).map(toLiteralType))
     );
   };
 
@@ -72,10 +73,10 @@ export default (name: string) => {
   );
 
   const pd2Type = (posCheckType: t.TSType, pd1CheckType: t.TSType) => {
-    return generateConditionalType(posCheckType, 0, pos, pd1 => {
-      return generateConditionalType(pd1CheckType, 0, pd1, pd2 =>
-        t.tsUnionType(Object.keys(pd2).map(toLiteralType))
-      );
+    return generateConditionalTypeWithNull(posCheckType, 0, pos, pd1 => {
+      return generateConditionalTypeWithNull(pd1CheckType, 0, pd1, pd2 => {
+        return t.tsUnionType(Object.keys(pd2).map(toLiteralType));
+      });
     });
   };
 
@@ -106,13 +107,13 @@ export default (name: string) => {
     pd1CheckType: t.TSType,
     pd2CheckType: t.TSType
   ) => {
-    return generateConditionalType(posCheckType, 0, pos, pd1 =>
-      generateConditionalType(pd1CheckType, 0, pd1, pd2 =>
-        generateConditionalType(pd2CheckType, 0, pd2, pd3 =>
-          t.tsUnionType(Object.keys(pd3).map(toLiteralType))
-        )
-      )
-    );
+    return generateConditionalTypeWithNull(posCheckType, 0, pos, pd1 => {
+      return generateConditionalTypeWithNull(pd1CheckType, 0, pd1, pd2 => {
+        return generateConditionalTypeWithNull(pd2CheckType, 0, pd2, pd3 => {
+          return t.tsUnionType(Object.keys(pd3).map(toLiteralType));
+        });
+      });
+    });
   };
 
   const pd3TypeDef = t.exportNamedDeclaration(

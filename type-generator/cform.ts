@@ -7,7 +7,8 @@ import {
   toLiteralType,
   toTSTypeReference,
   toODef,
-  toSwitchOrDefault
+  toSwitchOrDefault,
+  generateConditionalTypeWithNull
 } from "./util";
 export default (name: string) => {
   const file = fs.readFileSync(`./type-generator/${name}/con.yml`, "utf8");
@@ -26,24 +27,32 @@ export default (name: string) => {
     t.identifier("PosD1"),
     t.tsTypeParameterInstantiation([toTSTypeReference("P")])
   );
-  const cfRef = t.tsTypeReference(
-    t.identifier("ConjugationForm"),
+  const cf1Ref = t.tsTypeReference(
+    t.identifier("ConjugationForm1"),
     t.tsTypeParameterInstantiation([
       toTSTypeReference("P"),
       toTSTypeReference("PD1")
     ])
   );
+  const cf2Ref = t.tsTypeReference(
+    t.identifier("ConjugationForm2"),
+    t.tsTypeParameterInstantiation([
+      toTSTypeReference("P"),
+      toTSTypeReference("PD1"),
+      toTSTypeReference("CF1")
+    ])
+  );
 
-  const cfType = (posCheckType: t.TSType, pd1CheckType: t.TSType) => {
-    return generateConditionalType(posCheckType, 0, con, pd1 => {
-      return generateConditionalType(pd1CheckType, 0, pd1, cf =>
+  const cf1Type = (posCheckType: t.TSType, pd1CheckType: t.TSType) => {
+    return generateConditionalTypeWithNull(posCheckType, 0, con, pd1 => {
+      return generateConditionalTypeWithNull(pd1CheckType, 0, pd1, cf =>
         t.tsUnionType(Object.keys(cf).map(toLiteralType))
       );
     });
   };
-  const cfTypeDef = t.exportNamedDeclaration(
+  const cf1TypeDef = t.exportNamedDeclaration(
     t.tsTypeAliasDeclaration(
-      t.identifier("ConjugationForm"),
+      t.identifier("ConjugationForm1"),
       t.tsTypeParameterDeclaration([
         {
           type: "TSTypeParameter" as "TSTypeParameter",
@@ -58,7 +67,7 @@ export default (name: string) => {
           name: "PD1"
         } as t.TSTypeParameter
       ]),
-      cfType(toTSTypeReference("P"), toTSTypeReference("PD1"))
+      cf1Type(toTSTypeReference("P"), toTSTypeReference("PD1"))
     ),
     []
   );
@@ -66,11 +75,11 @@ export default (name: string) => {
   const cf2Type = (
     posCheckType: t.TSType,
     pd1CheckType: t.TSType,
-    cfCheckType: t.TSType
+    cf1CheckType: t.TSType
   ) => {
-    return generateConditionalType(posCheckType, 0, con, pd1 => {
-      return generateConditionalType(pd1CheckType, 0, pd1, cf => {
-        return generateConditionalType(cfCheckType, 0, cf, cf2 =>
+    return generateConditionalTypeWithNull(posCheckType, 0, con, pd1 => {
+      return generateConditionalTypeWithNull(pd1CheckType, 0, pd1, cf1 => {
+        return generateConditionalTypeWithNull(cf1CheckType, 0, cf1, cf2 =>
           t.tsUnionType(Object.keys(cf2).map(toLiteralType))
         );
       });
@@ -95,22 +104,89 @@ export default (name: string) => {
         } as t.TSTypeParameter,
         {
           type: "TSTypeParameter" as "TSTypeParameter",
-          default: cfRef,
-          constraint: cfRef,
-          name: "CF"
+          default: cf1Ref,
+          constraint: cf1Ref,
+          name: "CF1"
         } as t.TSTypeParameter
       ]),
       cf2Type(
         toTSTypeReference("P"),
         toTSTypeReference("PD1"),
-        toTSTypeReference("CF")
+        toTSTypeReference("CF1")
       )
     ),
     []
   );
 
-  const toConjugationFormFuncDef = template.statement(
-    `export const toConjugationForm = <P extends Pos, PD1 extends PosD1<P>>(pos: P, d1: PD1, s:string):ConjugationForm<P, PD1>=>{
+  const cfType = (
+    posCheckType: t.TSType,
+    pd1CheckType: t.TSType,
+    cf1CheckType: t.TSType,
+    cf2CheckType: t.TSType
+  ) => {
+    return generateConditionalTypeWithNull(posCheckType, 0, con, pd1 => {
+      return generateConditionalTypeWithNull(pd1CheckType, 0, pd1, cf1 => {
+        return generateConditionalTypeWithNull(
+          cf1CheckType,
+          0,
+          cf1,
+          (cf2, cf1Name) => {
+            return generateConditionalType(
+              cf2CheckType,
+              0,
+              cf2,
+              (_, cf2Name) => {
+                return toLiteralType(cf1Name + "・" + cf2Name);
+              }
+            );
+          },
+          (_, cf1Name) => toLiteralType(cf1Name)
+        );
+      });
+    });
+  };
+
+  const cfTypeDef = t.exportNamedDeclaration(
+    t.tsTypeAliasDeclaration(
+      t.identifier("ConjugationForm"),
+      t.tsTypeParameterDeclaration([
+        {
+          type: "TSTypeParameter" as "TSTypeParameter",
+          default: posRef,
+          constraint: posRef,
+          name: "P"
+        } as t.TSTypeParameter,
+        {
+          type: "TSTypeParameter" as "TSTypeParameter",
+          default: pd1Ref,
+          constraint: pd1Ref,
+          name: "PD1"
+        } as t.TSTypeParameter,
+        {
+          type: "TSTypeParameter" as "TSTypeParameter",
+          default: cf1Ref,
+          constraint: cf1Ref,
+          name: "CF1"
+        } as t.TSTypeParameter,
+        {
+          type: "TSTypeParameter" as "TSTypeParameter",
+          default: cf2Ref,
+          constraint: cf2Ref,
+          name: "CF2"
+        } as t.TSTypeParameter
+      ]),
+      cfType(
+        toTSTypeReference("P"),
+        toTSTypeReference("PD1"),
+        toTSTypeReference("CF1"),
+        toTSTypeReference("CF2")
+      )
+    ),
+    []
+  );
+
+  const toCF1FuncDef = template.statement(
+    `export const toCF1 = <P extends Pos, PD1 extends PosD1<P>>(pos: P, d1: PD1, s:string):ConjugationForm1<P, PD1>=>{
   SWITCH;
   RETURN;
 }`,
@@ -128,7 +204,7 @@ export default (name: string) => {
           t.tsAsExpression(
             s,
             t.tsTypeReference(
-              t.identifier("ConjugationForm"),
+              t.identifier("ConjugationForm1"),
               t.tsTypeParameterInstantiation([
                 t.tsTypeReference(t.identifier("P")),
                 t.tsTypeReference(t.identifier("PD1"))
@@ -170,8 +246,8 @@ export default (name: string) => {
   );
 
   const toCF2FuncDef = template.statement(
-    `export const toCF2 = <P extends Pos, PD1 extends PosD1<P>, CF extends ConjugationForm<P, PD1>>
-    (pos: P, d1: PD1, cf: CF, s:string):ConjugationForm2<P, PD1, CF>=>{
+    `export const toCF2 = <P extends Pos, PD1 extends PosD1<P>, CF1 extends ConjugationForm1<P, PD1>>
+    (pos: P, d1: PD1, cf: CF1, s:string):ConjugationForm2<P, PD1, CF1>=>{
   SWITCH;
   RETURN;
 }`,
@@ -193,7 +269,7 @@ export default (name: string) => {
               t.tsTypeParameterInstantiation([
                 t.tsTypeReference(t.identifier("P")),
                 t.tsTypeReference(t.identifier("PD1")),
-                t.tsTypeReference(t.identifier("CF"))
+                t.tsTypeReference(t.identifier("CF1"))
               ])
             )
           );
@@ -246,10 +322,10 @@ export default (name: string) => {
 export type CFSet<
   P extends Pos=Pos,
   PD1 extends PosD1<P>=PosD1<P>,
-  CF extends ConjugationForm<P,PD1>=ConjugationForm<P,PD1>,
-  CF2 extends ConjugationForm2<P,PD1,CF>=ConjugationForm2<P,PD1,CF>
+  CF1 extends ConjugationForm1<P,PD1>=ConjugationForm1<P,PD1>,
+  CF2 extends ConjugationForm2<P,PD1,CF1>=ConjugationForm2<P,PD1,CF1>
 > = {
-  cf: CF,
+  cf1: CF1,
   cf2: CF2
 };
 `,
@@ -264,16 +340,16 @@ export type CFSet<
 export const toCFSet = <
   P extends Pos,
   PD1 extends PosD1<P>,
-  CF extends ConjugationForm<P,PD1>=ConjugationForm<P,PD1>,
-  CF2 extends ConjugationForm2<P,PD1,CF>=ConjugationForm2<P,PD1,CF>
+  CF1 extends ConjugationForm1<P,PD1>=ConjugationForm1<P,PD1>,
+  CF2 extends ConjugationForm2<P,PD1,CF1>=ConjugationForm2<P,PD1,CF1>
 >(
   pos: P,
   d1: PD1,
-  cf: CF,
+  cf1: CF1,
   cf2: CF2
-): CFSet<P, PD1, CF, CF2> => {
+): CFSet<P, PD1, CF1, CF2> => {
   return {
-    cf,
+    cf1,
     cf2,
   };
 };
@@ -285,9 +361,10 @@ export const toCFSet = <
   )();
 
   return [
-    cfTypeDef,
+    cf1TypeDef,
     cf2TypeDef,
-    toConjugationFormFuncDef,
+    cfTypeDef,
+    toCF1FuncDef,
     toCF2FuncDef,
     cfSetTypeDef,
     toCFSetFuncDef
