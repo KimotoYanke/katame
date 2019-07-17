@@ -23,4 +23,4 @@ ts-node src/mecab/index.ts
 
 ### IPADic
 
-「ipadic version 2.7.0 ユーザーズマニュアル」から。動詞の文語系は実装していません。
+「ipadic version 2.7.0 ユーザーズマニュアル」から。

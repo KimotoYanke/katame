@@ -295,16 +295,22 @@ export default (name: string) => {
                               p[s],
                               t.identifier("s"),
                               p =>
-                                Object.keys(p).map(s => {
-                                  return t.switchCase(t.stringLiteral(s), [
-                                    t.returnStatement(toAs(t.identifier("s")))
-                                  ]);
-                                }),
-                              toAs(t.nullLiteral())
+                                Object.keys(p)
+                                  .filter(s => !!s)
+                                  .map(s => {
+                                    return t.switchCase(t.stringLiteral(s), [
+                                      t.returnStatement(toAs(t.identifier("s")))
+                                    ]);
+                                  }),
+                              toAs(
+                                Object.keys(p[s])[0]
+                                  ? t.stringLiteral(Object.keys(p[s])[0])
+                                  : t.nullLiteral()
+                              )
                             );
                             return toSwitchOrDefault(s, SWITCH, RETURN);
                           }),
-                      toAs(t.stringLiteral(Object.keys(p[s])[0]))
+                      toAs(t.nullLiteral())
                     );
                     return toSwitchOrDefault(s, SWITCH, RETURN);
                   }),
